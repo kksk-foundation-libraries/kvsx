@@ -9,36 +9,42 @@
 	</parent>
 	<artifactId>kvsx-bom</artifactId>
 	<packaging>pom</packaging>
+	<properties>
+		<org.rocksdb.version>6.22.1.1</org.rocksdb.version>
+		<org.slf4j.version>1.7.32</org.slf4j.version>
+		<org.projectlombok.version>1.18.20</org.projectlombok.version>
+		<junit.version>4.13.2</junit.version>
+	</properties>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>org.rocksdb</groupId>
 				<artifactId>rocksdbjni</artifactId>
-				<version>6.22.1.1</version>
+				<version>${org.rocksdb.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
-				<version>1.7.32</version>
+				<version>${org.slf4j.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.projectlombok</groupId>
 				<artifactId>lombok</artifactId>
-				<version>1.18.20</version>
+				<version>${org.projectlombok.version}</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-simple</artifactId>
-				<version>1.7.32</version>
+				<version>${org.slf4j.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
-				<version>4.13.2</version>
+				<version>${junit.version}</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>
