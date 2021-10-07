@@ -9,6 +9,11 @@
 	</parent>
 	<artifactId>kvsx-modules</artifactId>
 	<packaging>pom</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -42,4 +47,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<modules>
+		<module>kvsx-bytearray-modules</module>
+	</modules>
 </project>
