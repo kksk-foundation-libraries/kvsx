@@ -6,4 +6,8 @@
 	<artifactId>kvsx-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
+	<modules>
+		<module>kvsx-bom</module>
+		<module>kvsx-modules</module>
+	</modules>
 </project>
