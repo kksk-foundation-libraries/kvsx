@@ -2,14 +2,8 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>kvsx</groupId>
-    <artifactId>kvsx-modules</artifactId>
+    <artifactId>kvsx-bytearray-modules</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>kvsx-bytearray-modules</artifactId>
-  <packaging>pom</packaging>
-  <modules>
-  	<module>kvsx-bytearray-api</module>
-  	<module>kvsx-bytearray-local-persist-rocksdb</module>
-  	<module>kvsx-bytearray-remote-ignite</module>
-  </modules>
+  <artifactId>kvsx-bytearray-local-persist-rocksdb</artifactId>
 </project>

@@ -49,5 +49,7 @@
 	</dependencies>
 	<modules>
 		<module>kvsx-bytearray-modules</module>
+		<module>kvsx-eventstore-modules</module>
+		<module>kvsx-eventsourcing-modules</module>
 	</modules>
 </project>

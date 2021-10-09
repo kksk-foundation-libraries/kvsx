@@ -5,11 +5,6 @@
     <artifactId>kvsx-modules</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>kvsx-bytearray-modules</artifactId>
+  <artifactId>kvsx-eventstore-modules</artifactId>
   <packaging>pom</packaging>
-  <modules>
-  	<module>kvsx-bytearray-api</module>
-  	<module>kvsx-bytearray-local-persist-rocksdb</module>
-  	<module>kvsx-bytearray-remote-ignite</module>
-  </modules>
 </project>
