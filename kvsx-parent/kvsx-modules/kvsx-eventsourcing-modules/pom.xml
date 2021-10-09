@@ -7,4 +7,7 @@
   </parent>
   <artifactId>kvsx-eventsourcing-modules</artifactId>
   <packaging>pom</packaging>
+  <modules>
+  	<module>kvsx-eventsourcing-api</module>
+  </modules>
 </project>

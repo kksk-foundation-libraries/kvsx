@@ -2,12 +2,8 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>kvsx</groupId>
-    <artifactId>kvsx-modules</artifactId>
+    <artifactId>kvsx-eventsourcing-modules</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>kvsx-eventstore-modules</artifactId>
-  <packaging>pom</packaging>
-  <modules>
-  	<module>kvsx-eventstore-api</module>
-  </modules>
+  <artifactId>kvsx-eventsourcing-api</artifactId>
 </project>
