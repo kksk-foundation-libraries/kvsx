@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import kvsx.bytearray.exception.ByteArrayStoreException;
 
-public interface ByteArrayStore {
+public interface ByteArrayStore extends AutoCloseable {
 	default void put(byte storeId, byte[] key, byte[] value) throws ByteArrayStoreException {
 		put(physicalKey(storeId, key), value);
 	}
@@ -34,6 +34,8 @@ public interface ByteArrayStore {
 		return join(Bits.toByteArray(storeId), key);
 	}
 
+	void clear() throws ByteArrayStoreException;
+	
 	default byte[] join(byte[]... bs) {
 		int length = 0;
 		for (byte[] b : bs) {
