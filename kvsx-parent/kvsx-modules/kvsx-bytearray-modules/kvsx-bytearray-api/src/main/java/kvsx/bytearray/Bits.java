@@ -1,5 +1,7 @@
 package kvsx.bytearray;
 
+import java.util.Arrays;
+
 class Bits {
 
 	/*
@@ -188,4 +190,9 @@ class Bits {
 		return toByteArray;
 	}
 
+	static final byte[] MIN_KEY = {};
+	static final byte[] MAX_KEY = new byte[256];
+	static {
+		Arrays.fill(MAX_KEY, (byte)0xFF);
+	}
 }

@@ -13,7 +13,13 @@ import lombok.EqualsAndHashCode;
 public class LocalMemoryByteArrayStore implements ByteArrayStore {
 	private final ConcurrentMap<Bin, byte[]> internalStore = new ConcurrentHashMap<>();
 
-	private LocalMemoryByteArrayStore() {
+	public static class Builder {
+		public LocalMemoryByteArrayStore build() throws ByteArrayStoreException {
+			return new LocalMemoryByteArrayStore();
+		}
+	}
+
+	private LocalMemoryByteArrayStore() throws ByteArrayStoreException {
 	}
 
 	@Override
