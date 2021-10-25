@@ -24,7 +24,7 @@ import org.rocksdb.RocksDBException;
 import com.google.common.util.concurrent.Striped;
 
 import kvsx.bytearray.ByteArrayStore;
-import kvsx.bytearray.exception.ByteArrayStoreException;
+import kvsx.exception.KvsxException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -45,7 +45,7 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 	private final ConcurrentMap<Byte, ColumnFamilyHandle> handles = new ConcurrentHashMap<>();
 	private final List<ColumnFamilyHandle> allHandles = new ArrayList<>();
 
-	private ColumnFamilyByteArrayStore(String path, Options options, DBOptions dbOptions, String[] columnFamilyNames) throws ByteArrayStoreException {
+	private ColumnFamilyByteArrayStore(String path, Options options, DBOptions dbOptions, String[] columnFamilyNames) throws KvsxException {
 		this.path = path;
 		this.options = options;
 		this.dbOptions = dbOptions;
@@ -105,7 +105,7 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 				}
 			}
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			this.options.close();
 			this.options = null;
@@ -121,13 +121,13 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 			return this;
 		}
 
-		public ColumnFamilyByteArrayStore build() throws ByteArrayStoreException {
+		public ColumnFamilyByteArrayStore build() throws KvsxException {
 			return new ColumnFamilyByteArrayStore(path, options$set ? options$value : new Options(), dbOptions$set ? dbOptions$value : new DBOptions(), columnFamilyNames);
 		}
 	}
 
 	@Override
-	public void put(byte storeId, byte[] key, byte[] value) throws ByteArrayStoreException {
+	public void put(byte storeId, byte[] key, byte[] value) throws KvsxException {
 		Bin lockKey = new Bin(physicalKey(storeId, key));
 		Lock lock = readWriteLock.readLock();
 		Lock updateLock = stripedUpdateLock.get(lockKey);
@@ -136,7 +136,7 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 			updateLock.lock();
 			rocksDB.put(handles.get(storeId), key, value);
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			updateLock.unlock();
 			lock.unlock();
@@ -144,13 +144,35 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 	}
 
 	@Override
-	public void put(byte[] physicalKey, byte[] value) throws ByteArrayStoreException {
+	public void put(byte[] physicalKey, byte[] value) throws KvsxException {
 		throw new UnsupportedOperationException("please use put(byte storeId, byte[] key, byte[] value)");
 
 	}
 
 	@Override
-	public void remove(byte storeId, byte[] key) throws ByteArrayStoreException {
+	public void merge(byte storeId, byte[] key, byte[] value) throws KvsxException {
+		Bin lockKey = new Bin(physicalKey(storeId, key));
+		Lock lock = readWriteLock.readLock();
+		Lock updateLock = stripedUpdateLock.get(lockKey);
+		try {
+			lock.lock();
+			updateLock.lock();
+			rocksDB.merge(handles.get(storeId), key, value);
+		} catch (RocksDBException e) {
+			throw new KvsxException(e);
+		} finally {
+			updateLock.unlock();
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public void merge(byte[] physicalKey, byte[] value) throws KvsxException {
+		throw new UnsupportedOperationException("please use merge(byte storeId, byte[] key, byte[] value)");
+	}
+
+	@Override
+	public void remove(byte storeId, byte[] key) throws KvsxException {
 		Bin lockKey = new Bin(physicalKey(storeId, key));
 		Lock lock = readWriteLock.readLock();
 		Lock updateLock = stripedUpdateLock.get(lockKey);
@@ -159,7 +181,7 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 			updateLock.lock();
 			rocksDB.delete(handles.get(storeId), key);
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			updateLock.unlock();
 			lock.unlock();
@@ -167,12 +189,12 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 	}
 
 	@Override
-	public void remove(byte[] physicalKey) throws ByteArrayStoreException {
+	public void remove(byte[] physicalKey) throws KvsxException {
 		throw new UnsupportedOperationException("please use remove(byte storeId, byte[] key)");
 	}
 
 	@Override
-	public boolean putIfAbsent(byte storeId, byte[] key, byte[] value) throws ByteArrayStoreException {
+	public boolean putIfAbsent(byte storeId, byte[] key, byte[] value) throws KvsxException {
 		Bin lockKey = new Bin(physicalKey(storeId, key));
 		Lock lock = readWriteLock.readLock();
 		Lock updateLock = stripedUpdateLock.get(lockKey);
@@ -186,7 +208,7 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 			}
 			return false;
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			updateLock.unlock();
 			lock.unlock();
@@ -194,25 +216,25 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 	}
 
 	@Override
-	public boolean putIfAbsent(byte[] physicalKey, byte[] value) throws ByteArrayStoreException {
+	public boolean putIfAbsent(byte[] physicalKey, byte[] value) throws KvsxException {
 		throw new UnsupportedOperationException("please use putIfAbsent(byte storeId, byte[] key, byte[] value)");
 	}
 
 	@Override
-	public byte[] get(byte storeId, byte[] key) throws ByteArrayStoreException {
+	public byte[] get(byte storeId, byte[] key) throws KvsxException {
 		Lock lock = readWriteLock.readLock();
 		try {
 			lock.lock();
 			return rocksDB.get(handles.get(storeId), key);
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			lock.unlock();
 		}
 	}
 
 	@Override
-	public byte[] get(byte[] physicalKey) throws ByteArrayStoreException {
+	public byte[] get(byte[] physicalKey) throws KvsxException {
 		throw new UnsupportedOperationException("please use get(byte storeId, byte[] key)");
 	}
 
@@ -224,7 +246,7 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 	}
 
 	@Override
-	public void clear() throws ByteArrayStoreException {
+	public void clear() throws KvsxException {
 		Lock lock = readWriteLock.writeLock();
 		try {
 			lock.lock();
@@ -240,7 +262,7 @@ public class ColumnFamilyByteArrayStore implements ByteArrayStore {
 				throw err.get();
 			}
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			lock.unlock();
 		}

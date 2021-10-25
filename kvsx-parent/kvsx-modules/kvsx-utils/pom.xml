@@ -4,15 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>kvsx</groupId>
-		<artifactId>kvsx-bytearray-modules</artifactId>
+		<artifactId>kvsx-modules</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>kvsx-bytearray-api</artifactId>
-	<dependencies>
-		<dependency>
-			<groupId>kvsx</groupId>
-			<artifactId>kvsx-utils</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
+	<artifactId>kvsx-utils</artifactId>
 </project>

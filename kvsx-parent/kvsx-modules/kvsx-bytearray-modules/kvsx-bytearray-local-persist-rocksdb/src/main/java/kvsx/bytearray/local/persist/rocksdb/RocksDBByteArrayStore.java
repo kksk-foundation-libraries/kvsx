@@ -12,7 +12,7 @@ import org.rocksdb.RocksDBException;
 import com.google.common.util.concurrent.Striped;
 
 import kvsx.bytearray.ByteArrayStore;
-import kvsx.bytearray.exception.ByteArrayStoreException;
+import kvsx.exception.KvsxException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -28,14 +28,14 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 	private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 	private final Striped<Lock> stripedUpdateLock = Striped.lock(8_191);
 
-	private RocksDBByteArrayStore(String path, Options options) throws ByteArrayStoreException {
+	private RocksDBByteArrayStore(String path, Options options) throws KvsxException {
 		this.path = path;
 		this.options = options;
 
 		try {
 			rocksDB = RocksDB.open(this.options, this.path);
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			this.options.close();
 			this.options = null;
@@ -49,13 +49,13 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 			return this;
 		}
 
-		public RocksDBByteArrayStore build() throws ByteArrayStoreException {
+		public RocksDBByteArrayStore build() throws KvsxException {
 			return new RocksDBByteArrayStore(path, options$set ? options$value : new Options());
 		}
 	}
 
 	@Override
-	public void put(byte[] physicalKey, byte[] value) throws ByteArrayStoreException {
+	public void put(byte[] physicalKey, byte[] value) throws KvsxException {
 		Bin lockKey = new Bin(physicalKey);
 		Lock lock = readWriteLock.readLock();
 		Lock updateLock = stripedUpdateLock.get(lockKey);
@@ -64,7 +64,29 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 			updateLock.lock();
 			rocksDB.put(physicalKey, value);
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
+		} finally {
+			updateLock.unlock();
+			lock.unlock();
+		}
+	}
+	
+	@Override
+	public void merge(byte storeId, byte[] key, byte[] value) throws KvsxException {
+		merge(physicalKey(storeId, key), value);
+	}
+	
+	@Override
+	public void merge(byte[] physicalKey, byte[] value) throws KvsxException {
+		Bin lockKey = new Bin(physicalKey);
+		Lock lock = readWriteLock.readLock();
+		Lock updateLock = stripedUpdateLock.get(lockKey);
+		try {
+			lock.lock();
+			updateLock.lock();
+			rocksDB.merge(physicalKey, value);
+		} catch (RocksDBException e) {
+			throw new KvsxException(e);
 		} finally {
 			updateLock.unlock();
 			lock.unlock();
@@ -72,7 +94,7 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 	}
 
 	@Override
-	public void remove(byte[] physicalKey) throws ByteArrayStoreException {
+	public void remove(byte[] physicalKey) throws KvsxException {
 		Bin lockKey = new Bin(physicalKey);
 		Lock lock = readWriteLock.readLock();
 		Lock updateLock = stripedUpdateLock.get(lockKey);
@@ -81,7 +103,7 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 			updateLock.lock();
 			rocksDB.delete(physicalKey);
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			updateLock.unlock();
 			lock.unlock();
@@ -89,7 +111,7 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 	}
 
 	@Override
-	public boolean putIfAbsent(byte[] physicalKey, byte[] value) throws ByteArrayStoreException {
+	public boolean putIfAbsent(byte[] physicalKey, byte[] value) throws KvsxException {
 		Bin lockKey = new Bin(physicalKey);
 		Lock lock = readWriteLock.readLock();
 		Lock updateLock = stripedUpdateLock.get(lockKey);
@@ -103,7 +125,7 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 			}
 			return false;
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			updateLock.unlock();
 			lock.unlock();
@@ -111,13 +133,13 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 	}
 
 	@Override
-	public byte[] get(byte[] physicalKey) throws ByteArrayStoreException {
+	public byte[] get(byte[] physicalKey) throws KvsxException {
 		Lock lock = readWriteLock.readLock();
 		try {
 			lock.lock();
 			return rocksDB.get(physicalKey);
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			lock.unlock();
 		}
@@ -131,13 +153,13 @@ public class RocksDBByteArrayStore implements ByteArrayStore {
 	}
 
 	@Override
-	public void clear() throws ByteArrayStoreException {
+	public void clear() throws KvsxException {
 		Lock lock = readWriteLock.writeLock();
 		try {
 			lock.lock();
 			rocksDB.deleteRange(MIN_KEY, MAX_KEY);
 		} catch (RocksDBException e) {
-			throw new ByteArrayStoreException(e);
+			throw new KvsxException(e);
 		} finally {
 			lock.unlock();
 		}
